@@ -29,7 +29,6 @@ pipeline {
                         subject: "Run Tests - ${currentBuild.currentResult}",
                         body: "The 'Run Tests' stage has finished with status: ${currentBuild.currentResult}",
                         to: "thishakya111@gmail.com",
-                        attachLog: true,
                         mimeType: 'text/plain'
                     )
                 }
