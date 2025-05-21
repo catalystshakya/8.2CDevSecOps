@@ -1,0 +1,68 @@
+pipeline {
+    agent any
+    
+    tools {
+        nodejs 'NodeJS'  // Pre-configured NodeJS tool in Jenkins
+    }
+
+    stages {
+        stage('Checkout') {
+            steps {
+                git branch: 'main', 
+                url: 'https://github.com/catalystshakya/8.2CDevSecOps.git'
+            }
+        }
+
+        stage('Install Dependencies') {
+            steps {
+                bat 'cd nodejs-goof-main\\nodejs-goof-main && npm install'
+            }
+        }
+
+        stage('Run Tests') {
+            steps {
+                bat 'cd nodejs-goof-main\\nodejs-goof-main && npm test || exit /b 0'
+            }
+            post {
+                always {
+                    emailext(
+                        subject: "Run Tests - ${currentBuild.currentResult}",
+                        body: "The 'Run Tests' stage has finished with status: ${currentBuild.currentResult}",
+                        to: "thishakya111@gmail.com",
+                        attachLog: true,
+                        mimeType: 'text/plain'
+                    )
+                }
+            }
+        }
+
+        stage('Generate Coverage Report') {
+            steps {
+                bat 'cd nodejs-goof-main\\nodejs-goof-main && npm run coverage || exit /b 0'
+            }
+        }
+
+        stage('NPM Audit (Security Scan)') {
+            steps {
+                bat 'cd nodejs-goof-main\\nodejs-goof-main && npm audit || exit /b 0'
+            }
+            post {
+                always {
+                    emailext(
+                        subject: "Security Scan - ${currentBuild.currentResult}",
+                        body: "The 'Security Scan' stage has completed with status: ${currentBuild.currentResult}",
+                        to: "thishakya111@gmail.com",
+                        attachLog: true,
+                        mimeType: 'text/plain'
+                    )
+                }
+            }
+        }
+    }
+
+    post {
+        always {
+            bat 'echo "Pipeline completed with status: ${currentBuild.result}"'
+        }
+    }
+}
